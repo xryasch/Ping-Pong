@@ -1,5 +1,6 @@
 from pygame import *
 from random import randint 
+font.init()
 
 class GameSprite(sprite.Sprite):
     def __init__(self, player_image, player_x, player_y, size_x, size_y, player_speed):
@@ -16,19 +17,19 @@ class Player(GameSprite):
     def update1(self):
         keys_pressed = key.get_pressed()
                 
-        if keys_pressed[K_w] and self.rect.y < 10:
-                self.rect.y += 5
+        if keys_pressed[K_w] and self.rect.y > 10:
+                self.rect.y -= 5
 
-        if  keys_pressed[K_s] and self.rect.y > 390:
-                self.rect.y -= 5   
+        if  keys_pressed[K_s] and self.rect.y < 490:
+                self.rect.y += 5   
 
     def update2(self):
         keys_pressed = key.get_pressed()
                 
-        if keys_pressed[K_UP] and self.rect.y < 10:
+        if keys_pressed[K_UP] and self.rect.y > 10:
                 self.rect.y -= 5
 
-        if  keys_pressed[K_DOWN] and self.rect.y > 390:
+        if  keys_pressed[K_DOWN] and self.rect.y < 490:
                 self.rect.y += 5   
 
 color_win = (255, 255, 255)
@@ -36,14 +37,21 @@ window = display.set_mode((700, 500))
 window.fill(color_win)
 display.set_caption("Пинг-Понг")
 
-raketka1 = Player("raketka.png", -130, 150, 500, 200, 10) 
-raketka2 = Player("raketka.png", 450, 150, 500, 200, 10)
-ball = Player("ball.png", randint(250, 350), randint(150, 250), 75, 75, 10)
+raketka1 = Player("raketka.png", 60, 150, 12, 200, 10) 
+raketka2 = Player("raketka.png", 640, 150, 12, 200, 10)
+ball = Player("ball.png", randint(250, 350), randint(150, 250), 75, 75, 15)
 
-FPS = 13
+FPS = 60
 run = True
 finish = False
 clock = time.Clock()
+
+speed_x = 3
+speed_y = 3
+
+font = font.SysFont('Arial Black', 40)
+lose1 = font.render("Player 1 Lose", True, (180, 0, 0))
+lose2 = font.render("Player 2 Lose", True, (180, 0, 0))
 
 while run:
     for e in event.get():
@@ -57,12 +65,32 @@ while run:
         raketka1.update1()
         raketka2.update2()
 
+
+        ball.rect.x += speed_x
+        ball.rect.y += speed_y
+    
+        if ball.rect.y > 450 or ball.rect.y < 0:
+            speed_y *= -1
+
+        if sprite.collide_rect(raketka1, ball) or sprite.collide_rect(raketka2, ball):
+            speed_x *= -1
+            speed_y *= -1
+
+        if ball.rect.x < 0:
+            finish = True
+            run = True
+            window.blit(lose1, (200, 200))
+        
+        if ball.rect.x > 700:
+            finish = True
+            run = True
+            window.blit(lose2, (200, 200))
+
+
+
         raketka1.reset()
         raketka2.reset()
         ball.reset()
-
-
-
 
     display.update()
     clock.tick(FPS)
